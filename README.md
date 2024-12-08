@@ -11,6 +11,7 @@
 ## Installation
 
 You can install Gola on your system by following the steps below:
+###### The installation is for the RECENT version of Gola, if you want to install the OLD version, please click here
 
 ### Step 1: Download the Gola Compiler
 
@@ -38,7 +39,7 @@ tar -xvzf gola-darwin-x86_64.tar.gz
 #### Step 3: Step 3: Install Gola
 
 ```bash
-sudo mv gola-linux-x86_64 /usr/local/bin/gola
+sudo mv ./v1.0.1/gola-linux-x86_64 /usr/local/bin/gola
 ```
 ```bash
 sudo chmod +x /usr/local/bin/gola

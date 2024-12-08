@@ -207,3 +207,6 @@ func main() {
 	}
 	fmt.Println("Jay Shree Ram Bhai!")
 }
+
+// GOOS=linux GOARCH=amd64 go build -o gola-linux-x86_64
+// GOOS=darwin GOARCH=amd64 go build -o gola-darwin-x86_64

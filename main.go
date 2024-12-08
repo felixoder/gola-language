@@ -192,7 +192,17 @@ func main() {
 		return
 	}
 
-	fmt.Println("Welcome to MiniLang - Bengali Edition!")
+	fmt.Println(`Welcome to Gola - Bengali Edition!
+
+     ::::::::        ::::::::       :::            :::
+    :+:    :+:     :+:    :+:      :+:          :+: :+:
+   +:+            +:+    +:+      +:+         +:+   +:+
+  :#:            +#+    +:+      +#+        +#++:++#++:
+ +#+   +#+#     +#+    +#+      +#+        +#+     +#+
+#+#    #+#     #+#    #+#      #+#        #+#     #+#
+########       ########       ########## ###     ###
+
+		`)
 	fmt.Println("Type 'exit' to quit.")
 	scanner := bufio.NewScanner(os.Stdin)
 	interpreter := NewInterpreter()

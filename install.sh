@@ -12,11 +12,11 @@ ARCH=$(uname -m)
 
 # Download the appropriate binary based on OS and architecture
 if [ "$OS" == "Linux" ] && [ "$ARCH" == "x86_64" ]; then
-    URL="https://github.com/felixoder/gola-language/releases/download/v1.0.0/gola-linux-x86_64.tar.gz"
+    URL="https://github.com/felixoder/gola-language/releases/download/v1.0.01/gola-linux-x86_64.tar.gz"
 elif [ "$OS" == "Darwin" ] && [ "$ARCH" == "x86_64" ]; then
-    URL="https://github.com/felixoder/gola-language/releases/download/v1.0.0/gola-darwin-x86_64.tar.gz"
+    URL="https://github.com/felixoder/gola-language/releases/download/v1.0.01/gola-darwin-x86_64.tar.gz"
 elif [ "$OS" == "Darwin" ] && [ "$ARCH" == "arm64" ]; then
-    URL="https://github.com/felixoder/gola-language/releases/download/v1.0.0/gola-darwin-arm64.tar.gz"
+    URL="https://github.com/felixoder/gola-language/releases/download/v1.0.1/gola-darwin-arm64.tar.gz"
 
 else
     echo "Unsupported OS or architecture"

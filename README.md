@@ -15,12 +15,13 @@ You can install Gola on your system by following the steps below:
 
 #### For Linux (x86_64)
 ```bash
-curl -L -o gola-linux-x86_64.tar.gz https://github.com/felixoder/gola-language/releases/download/v1.0.1/gola-linux-x86_64.tar.gz
+curl -L -o gola-linux-x86_64.tar.gz https://github.com/felixoder/gola-language/releases/download/v1.1.0/gola-linux-x86_64.tar.gz
+
 ```
 #### For macOS (x86_64)
 
 ```bash
-curl -L -o gola-darwin-x86_64.tar.gz https://github.com/felixoder/gola-language/releases/download/v1.0.1/gola-darwin-x86_64.tar.gz
+curl -L -o gola-darwin-x86_64.tar.gz https://github.com/felixoder/gola-language/releases/download/v1.1.0/gola-darwin-x86_64.tar.gz
 ```
 #### Step 2: Extract the Files
 

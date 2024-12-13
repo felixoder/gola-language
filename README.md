@@ -39,7 +39,7 @@ tar -xvzf gola-darwin-x86_64.tar.gz
 #### Step 3: Step 3: Install Gola
 
 ```bash
-sudo mv ./v1.0.1/gola-linux-x86_64 /usr/local/bin/gola
+sudo mv ./v1.0.2/gola-linux-x86_64 /usr/local/bin/gola
 ```
 ```bash
 sudo chmod +x /usr/local/bin/gola

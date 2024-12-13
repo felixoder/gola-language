@@ -10,56 +10,47 @@ import (
 )
 
 type Interpreter struct {
-	variables map[string]int
+	variables map[string]interface{}
 }
 
 // NewInterpreter initializes an interpreter
 func NewInterpreter() *Interpreter {
-	return &Interpreter{variables: make(map[string]int)}
+	return &Interpreter{variables: make(map[string]interface{})}
 }
 
 // Execute parses and executes a single line of code
 func (i *Interpreter) Execute(line string) {
 	tokens := strings.Fields(line)
-
 	if len(tokens) == 0 {
 		return
 	}
 
 	switch tokens[0] {
 	case "kemon":
-		// Ensure that the syntax is correct
 		if len(tokens) < 3 || tokens[1] != "achis" {
 			fmt.Println("bhul hoye gelo vai check kor ekbar")
 			return
 		}
-
-		// Get the argument after 'kemon achis'
 		arg := strings.Join(tokens[2:], " ")
 
-		// Case 1: If the argument is a valid expression (e.g., a + b)
-		// We will split the argument based on spaces and evaluate it as an expression
-		if strings.Contains(arg, "+") || strings.Contains(arg, "-") || strings.Contains(arg, "*") || strings.Contains(arg, "/") {
-			tokens := splitExpression(arg)
-			result, err := i.evaluateExpression(tokens)
-			if err != nil {
-				fmt.Println("bhul hoye gelo vai check kor ekbar")
-			} else {
-				fmt.Println(result)
-			}
-		} else if strings.HasPrefix(arg, `"`) && strings.HasSuffix(arg, `"`) {
-			// Case 2: Argument is a string literal (enclosed in double quotes)
-			// Remove the surrounding quotes and print the value
-			fmt.Println(arg[1 : len(arg)-1])
-		} else if _, err := strconv.Atoi(arg); err == nil {
-			// Case 3: Argument is a number (valid as an integer)
-			fmt.Println(arg)
-		} else {
-			// Case 4: Invalid expression or unknown token
-			fmt.Println("bhul hoye gelo vai check kor ekbar")
+		// Check if the argument is a quoted string
+		if strings.HasPrefix(arg, "\"") && strings.HasSuffix(arg, "\"") {
+			fmt.Println(arg[1 : len(arg)-1]) // Remove the quotes for display
+			return
 		}
 
-		fmt.Println("weee ko peyechis ebar porte bos")
+		// If not a string, evaluate the expression
+		value, err := i.evaluateExpression(strings.Fields(arg))
+		if err == nil {
+			fmt.Println(value)
+		} else {
+			// Check if it's a variable
+			if value, ok := i.variables[arg]; ok {
+				fmt.Println(value)
+			} else {
+				fmt.Println("bhul hoye gelo vai check kor ekbar")
+			}
+		}
 
 	case "bol":
 		if len(tokens) != 3 || tokens[1] != "bhai" {
@@ -67,124 +58,80 @@ func (i *Interpreter) Execute(line string) {
 			return
 		}
 		varName := tokens[2]
-		fmt.Printf("Enter value for %s: ", varName)
+		fmt.Printf(`Value bolo %s er =>: `, varName)
 		var input string
 		fmt.Scanln(&input)
-		value, err := strconv.Atoi(input)
-		if err != nil {
-			fmt.Println("bhul hoye gelo vai check kor ekbar: invalid number")
+
+		// Handle string input properly (strip the quotes if present)
+		if strings.HasPrefix(input, "\"") && strings.HasSuffix(input, "\"") {
+			i.variables[varName] = input[1 : len(input)-1] // Store the string without quotes
+		} else if value, err := strconv.Atoi(input); err == nil {
+			i.variables[varName] = value // Store the integer value
+		} else {
+			fmt.Println("bhul hoye gelo vai check kor ekbar: invalid value")
 			return
 		}
-		i.variables[varName] = value
 
 	case "dyakh":
-		// Syntax: dyakh jodi <condition>: <command> ar nahole: <command>
 		if len(tokens) < 4 || tokens[1] != "jodi" || !strings.Contains(line, "ar nahole:") {
 			fmt.Println("bhul hoye gelo vai check kor ekbar: Invalid conditional syntax")
 			return
 		}
 
-		// Split into condition and commands
 		parts := strings.Split(line, "ar nahole:")
 		if len(parts) != 2 {
 			fmt.Println("bhul hoye gelo vai check kor ekbar: Missing 'ar nahole'")
 			return
 		}
 
-		ifPart := strings.TrimSpace(parts[0])   // "dyakh jodi <condition>: <command>"
-		elsePart := strings.TrimSpace(parts[1]) // "<command>"
+		ifPart := strings.TrimSpace(parts[0])
+		elsePart := strings.TrimSpace(parts[1])
 
-		// Extract the condition and command for the "if" part
 		ifTokens := strings.SplitN(ifPart, ":", 2)
 		if len(ifTokens) != 2 {
 			fmt.Println("bhul hoye gelo vai check kor ekbar: Missing ':' in 'dyakh jodi'")
 			return
 		}
 
-		condition := strings.TrimSpace(strings.Join(strings.Fields(ifTokens[0])[2:], " ")) // Extract the condition
-		ifCommand := strings.TrimSpace(ifTokens[1])                                        // Command after ':'
+		condition := strings.TrimSpace(strings.Join(strings.Fields(ifTokens[0])[2:], " "))
+		ifCommand := strings.TrimSpace(ifTokens[1])
 
-		// Evaluate the condition
-		condValue, err := i.evaluateExpression(strings.Fields(condition))
+		condValue, err := i.evaluateCondition(condition)
 		if err != nil {
-			fmt.Println("bhul hoye gelo vai check kor ekbar: Error evaluating condition:", err)
+			fmt.Println("bhul hoye gelo vai check kor ekbar: Error evaluating condition")
 			return
 		}
 
-		// Execute the appropriate command
-		if condValue != 0 {
-			i.Execute(ifCommand) // Execute the command after 'dyakh jodi'
+		if condValue {
+			i.Execute(ifCommand)
 		} else {
-			// If the elsePart is a string surrounded by quotes, remove them
-			if strings.HasPrefix(elsePart, `"`) && strings.HasSuffix(elsePart, `"`) {
-				// Remove the surrounding quotes and print the result
-				fmt.Println(elsePart[1 : len(elsePart)-1])
+			if strings.HasPrefix(elsePart, "\"") && strings.HasSuffix(elsePart, "\"") {
+				fmt.Println(elsePart[1 : len(elsePart)-1]) // Remove quotes for printing
 			} else {
-				// Otherwise, just execute the command in elsePart
 				i.Execute(elsePart)
 			}
 		}
 
-	case "ar":
-		// Syntax: ar nahole
-		if len(tokens) != 2 || tokens[1] != "nahole" {
-			fmt.Println("bhul hoye gelo vai check kor ekbar: Invalid else syntax")
-			return
-		}
-
-		// Execute the next block
-		// Now it's just printing the raw string contents without quotes
-		fmt.Println("ar nahole: Execute the else block")
-
 	default:
-		if len(tokens) < 3 || tokens[1] != "=" {
-			fmt.Println("bhul hoye gelo vai check kor ekbar")
-			return
-		}
-		varName := tokens[0]
-		expression := tokens[2:]
-		value, err := i.evaluateExpression(expression)
-		if err != nil {
-			fmt.Println("bhul hoye gelo vai check kor ekbar:", err)
-			return
-		}
-		i.variables[varName] = value
-		fmt.Println("weee ko peyechis ebar porte bos")
+		fmt.Println("bhul hoye gelo vai check kor ekbar: Unknown command")
 	}
-}
-
-func splitExpression(expression string) []string {
-	// Split based on operators (+, -, *, /)
-	var tokens []string
-	var currentToken string
-	for _, ch := range expression {
-		if ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '>' || ch == '<' || ch == '=' || ch == '|' || ch == '&' {
-			if len(currentToken) > 0 {
-				tokens = append(tokens, currentToken)
-			}
-			tokens = append(tokens, string(ch))
-			currentToken = ""
-		} else if ch != ' ' {
-			currentToken += string(ch)
-		}
-	}
-	if len(currentToken) > 0 {
-		tokens = append(tokens, currentToken)
-	}
-	return tokens
 }
 
 func (i *Interpreter) evaluateExpression(tokens []string) (int, error) {
-	// If there's only one token, return its value
 	if len(tokens) == 1 {
-		// Handle the case where the token is a string
-		if tokens[0][0] == '"' && tokens[0][len(tokens[0])-1] == '"' {
-			return 1, nil // Consider string as "true" for conditional purposes
+		if value, ok := i.variables[tokens[0]]; ok {
+			switch v := value.(type) {
+			case int:
+				return v, nil
+			case string:
+				return 0, fmt.Errorf("expected an integer, but got a string")
+			default:
+				return 0, fmt.Errorf("invalid type for evaluation")
+			}
 		}
-		return i.getValue(tokens[0])
+		return strconv.Atoi(tokens[0])
 	}
 
-	// Handle binary operations like a + b
 	if len(tokens) == 3 {
 		left, err := i.getValue(tokens[0])
 		if err != nil {
@@ -206,31 +153,6 @@ func (i *Interpreter) evaluateExpression(tokens []string) (int, error) {
 				return 0, fmt.Errorf("division by zero")
 			}
 			return left / right, nil
-		case ">":
-			if left > right {
-				return 1, nil
-			}
-			return 0, nil
-		case "<":
-			if left < right {
-				return 1, nil
-			}
-			return 0, nil
-		case "==":
-			if left == right {
-				return 1, nil
-			}
-			return 0, nil
-		case "||":
-			if left != 0 || right != 0 {
-				return 1, nil
-			}
-			return 0, nil
-		case "&&":
-			if left != 0 && right != 0 {
-				return 1, nil
-			}
-			return 0, nil
 		default:
 			return 0, fmt.Errorf("unknown operator '%s'", tokens[1])
 		}
@@ -239,16 +161,53 @@ func (i *Interpreter) evaluateExpression(tokens []string) (int, error) {
 	return 0, fmt.Errorf("invalid expression")
 }
 
+func (i *Interpreter) evaluateCondition(condition string) (bool, error) {
+	tokens := strings.Fields(condition)
+	if len(tokens) != 3 {
+		return false, fmt.Errorf("invalid condition syntax")
+	}
+
+	left, err := i.getValue(tokens[0])
+	if err != nil {
+		return false, err
+	}
+	right, err := i.getValue(tokens[2])
+	if err != nil {
+		return false, err
+	}
+
+	switch tokens[1] {
+	case ">":
+		return left > right, nil
+	case "<":
+		return left < right, nil
+	case ">=":
+		return left >= right, nil
+	case "<=":
+		return left <= right, nil
+	case "==":
+		return left == right, nil
+	case "!=":
+		return left != right, nil
+	default:
+		return false, fmt.Errorf("unknown operator '%s'", tokens[1])
+	}
+}
+
 func (i *Interpreter) getValue(token string) (int, error) {
-	// Check if token is a number
 	if value, err := strconv.Atoi(token); err == nil {
 		return value, nil
 	}
-	// Check if token is a variable
 	if value, exists := i.variables[token]; exists {
-		return value, nil
+		switch v := value.(type) {
+		case int:
+			return v, nil
+		case string:
+			return 0, fmt.Errorf("expected an integer, but got a string")
+		default:
+			return 0, fmt.Errorf("unknown variable '%s'", token)
+		}
 	}
-	// Return error if token is unknown
 	return 0, fmt.Errorf("unknown variable '%s'", token)
 }
 
@@ -258,7 +217,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Println("Gola Compiler v1.0.1")
+		fmt.Println("Gola Compiler v1.0.2")
 		return
 	}
 	if *help {
@@ -304,7 +263,7 @@ func main() {
 #+#    #+#     #+#    #+#      #+#        #+#     #+#
 ########       ########       ########## ###     ###
 
-			`)
+				`)
 	fmt.Println("Type 'exit' to quit.")
 	scanner := bufio.NewScanner(os.Stdin)
 	interpreter := NewInterpreter()

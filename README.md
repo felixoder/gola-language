@@ -3,6 +3,10 @@
 **Gola** is a cute and simple programming language compiler designed to be easy to use. This guide will help you install and get started with Gola on your system.
 ![Gola Language](https://github.com/felixoder/gola-language/blob/main/assets/gola.png)
 
+## Using Gola
+![Gola Language](https://github.com/felixoder/gola-language/blob/main/assets/demo.png)
+
+
 ## Features
 - Lightweight and easy to use
 - Supports Linux, macOS

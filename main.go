@@ -273,6 +273,8 @@ func main() {
 		line := scanner.Text()
 		if strings.TrimSpace(line) == "exit" {
 			break
+
+		
 		}
 		interpreter.Execute(line)
 	}

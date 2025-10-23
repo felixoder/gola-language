@@ -1,0 +1,12 @@
+// loop_test.gola - Example demonstrating new features
+
+kemon achis "Testing Assignments and Loops"
+
+x = 10
+x = x + 5 // Should now set x to 15
+kemon achis "x value is:"
+kemon achis x
+
+// Loop from 0 to 5, printing the iterator
+bolte thak i [0] -> [5] [i++] :
+kemon achis i

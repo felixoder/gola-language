@@ -1,0 +1,7 @@
+*.exe
+*.exe~
+*.bak
+gola.exe
+tests.exe
+run_output.txt
+*.log

@@ -161,6 +161,20 @@ Jay Shree Ram Bhai!
 
 ---
 
+## New in Gola
+
+### Variable Assignment Fix
+Assignments now support expressions on the right-hand side, correctly updating the variable:
+- `x = x + 5`
+
+### Loop Statement (`bolte thak`)
+A basic file-mode loop is introduced. The loop header is followed by a single-line body on the next line:
+- **Syntax:** `bolte thak <iterator> [<start>] -> [<end>] [<increment>] :`
+- **Example:**
+  ```gola
+  bolte thak i [0] -> [5] [i++] :
+  kemon achis i
+
 ## Contributing
 Feel free to contribute to this project by submitting issues or pull requests to the GitHub repository.
 

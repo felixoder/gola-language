@@ -25,7 +25,7 @@ func (i *Interpreter) Execute(line string) {
 		line = strings.TrimSpace(line[:idx])
 	}
 	// Normalize spacing around '=' so "x=x+5" also works
-	line = strings.ReplaceAll(line, "=", " = ")
+	line = normalizeEquals(line)
 
 	tokens := strings.Fields(line)
 	if len(tokens) == 0 {
@@ -100,8 +100,9 @@ func (i *Interpreter) Execute(line string) {
 		}
 		varName := tokens[2]
 		fmt.Printf(`Value bolo %s er =>: `, varName)
-		var input string
-		fmt.Scanln(&input)
+		reader := bufio.NewReader(os.Stdin)
+		inp, _ := reader.ReadString('\n')
+		input := strings.TrimSpace(inp)
 
 		// Handle string input properly (strip the quotes if present)
 		if strings.HasPrefix(input, "\"") && strings.HasSuffix(input, "\"") {
@@ -156,6 +157,33 @@ func (i *Interpreter) Execute(line string) {
 	default:
 		fmt.Println("bhul hoye gelo vai check kor ekbar: Unknown command")
 	}
+}
+
+// normalizeEquals inserts spaces around standalone '=' but leaves
+// '==', '!=', '>=', '<=', '+=', '-=' etc. intact.
+func normalizeEquals(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == '=' {
+			var prev, next byte
+			if i > 0 {
+				prev = s[i-1]
+			}
+			if i+1 < len(s) {
+				next = s[i+1]
+			}
+			// if equals is part of a multi-char operator, keep as-is
+			if prev == '=' || prev == '!' || prev == '<' || prev == '>' || prev == '+' || prev == '-' || next == '=' || next == '+' || next == '-' {
+				b.WriteByte('=')
+			} else {
+				b.WriteString(" = ")
+			}
+		} else {
+			b.WriteByte(c)
+		}
+	}
+	return b.String()
 }
 
 func (i *Interpreter) evaluateExpression(tokens []string) (int, error) {
@@ -261,8 +289,8 @@ func (i *Interpreter) getValue(token string) (int, error) {
 // body: single-line loop body (e.g., "kemon achis i")
 func (i *Interpreter) ExecuteLoop(header, body string) {
 	header = strings.TrimSpace(header)
-	if strings.HasSuffix(header, ":") {
-		header = strings.TrimSuffix(header, ":")
+	if strings.HasSuffix(strings.TrimSpace(header), ":") {
+		header = strings.TrimSuffix(strings.TrimSpace(header), ":")
 	}
 
 	// expected format: bolte thak <iter> [<start>] -> [<end>] [<incr>]
@@ -412,12 +440,50 @@ func main() {
 	interpreter := NewInterpreter()
 	for {
 		fmt.Print(">> ")
-		scanner.Scan()
-		line := scanner.Text()
-		if strings.TrimSpace(line) == "exit" {
+		if !scanner.Scan() {
+			// EOF or error: exit REPL
 			break
 		}
+		line := scanner.Text()
+		lineTrim := strings.TrimSpace(line)
+		if lineTrim == "exit" {
+			break
+		}
+
+		// If user entered a loop header in REPL, read the loop body from the next non-empty line
+		// This mirrors file-mode behavior (file-mode reads the next line as the body).
+		if strings.HasPrefix(lineTrim, "bolte thak") {
+			// Prompt the user to enter the loop body (continuation prompt)
+			var body string
+			for {
+				fmt.Print("... ")
+				if !scanner.Scan() {
+					// EOF or error while reading body; abort loop read
+					fmt.Println("bhul hoye gelo vai check kor ekbar: unexpected EOF while reading loop body")
+					body = ""
+					break
+				}
+				body = scanner.Text()
+				// skip blank lines or comment-only lines until we get a real body line
+				if strings.TrimSpace(body) == "" || strings.HasPrefix(strings.TrimSpace(body), "//") {
+					// keep prompting for the body
+					continue
+				}
+				break
+			}
+			if strings.TrimSpace(body) == "" {
+				// if we couldn't get a valid body, warn and continue
+				fmt.Println("bhul hoye gelo vai check kor ekbar: loop header but no body")
+				continue
+			}
+			// call the same function as file-mode uses
+			interpreter.ExecuteLoop(lineTrim, body)
+			continue
+		}
+
+		// not a loop header — normal single-line execution
 		interpreter.Execute(line)
 	}
+
 	fmt.Println("Jay Shree Ram Bhai!")
 }

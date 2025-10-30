@@ -345,7 +345,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Println("Gola Compiler v1.0.2")
+		fmt.Println("Gola Compiler v2.0.1")
 		return
 	}
 	if *help {
